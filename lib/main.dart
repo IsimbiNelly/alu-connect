@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/event_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/saved_screen.dart';
 
 void main() {
-  runApp(const ALUConnectApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => EventProvider(),
+      child: const ALUConnectApp(),
+    ),
+  );
 }
 
 class ALUConnectApp extends StatelessWidget {
@@ -25,12 +33,13 @@ class ALUConnectApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Roboto',
       ),
-      initialRoute: '/',
+      initialRoute: '/saved',
       routes: {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/saved': (context) => const SavedScreen(),
       },
     );
   }

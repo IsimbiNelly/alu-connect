@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/event_provider.dart';
+import 'event_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,75 +16,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<String> _categories = [
     'All',
-    'Workshops',
-    'Hackathons',
+    'Workshop',
+    'Hackathon',
     'Internships',
     'Leadership',
-    'Startups',
+    'Opportunity',
     'Events',
   ];
 
-  final List<Map<String, String>> _opportunities = [
-    {
-      'title': 'Flutter Development Workshop',
-      'category': 'Workshops',
-      'date': 'June 15, 2025',
-      'location': 'ALU Campus - Room 204',
-      'description': 'Learn to build mobile apps with Flutter and Dart.',
-    },
-    {
-      'title': 'ALU Hackathon 2025',
-      'category': 'Hackathons',
-      'date': 'June 20, 2025',
-      'location': 'ALU Main Hall',
-      'description': 'Build innovative solutions for African challenges.',
-    },
-    {
-      'title': 'Google Summer Internship',
-      'category': 'Internships',
-      'date': 'July 1, 2025',
-      'location': 'Remote',
-      'description': 'Internship opportunity at Google for ALU students.',
-    },
-    {
-      'title': 'Leadership Bootcamp',
-      'category': 'Leadership',
-      'date': 'June 25, 2025',
-      'location': 'ALU Campus',
-      'description': 'Develop your leadership skills with industry mentors.',
-    },
-    {
-      'title': 'Startup Pitch Night',
-      'category': 'Startups',
-      'date': 'July 5, 2025',
-      'location': 'ALU Innovation Hub',
-      'description': 'Pitch your startup idea to investors and mentors.',
-    },
-    {
-      'title': 'Community Service Day',
-      'category': 'Events',
-      'date': 'July 10, 2025',
-      'location': 'Kigali City Center',
-      'description': 'Join fellow students in giving back to the community.',
-    },
-  ];
-
-  List<Map<String, String>> get _filteredOpportunities {
-    if (_selectedCategory == 'All') return _opportunities;
-    return _opportunities
-        .where((o) => o['category'] == _selectedCategory)
-        .toList();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<EventProvider>(context);
+    final events = provider.getByCategory(_selectedCategory);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 20,
@@ -110,10 +63,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  CircleAvatar(
-                    backgroundColor: const Color(0xFF5B21B6),
+                  const CircleAvatar(
+                    backgroundColor: Color(0xFF5B21B6),
                     radius: 22,
-                    child: const Text(
+                    child: Text(
                       'S',
                       style: TextStyle(
                         color: Colors.white,
@@ -124,7 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            // Category Filter
             SizedBox(
               height: 44,
               child: ListView.builder(
@@ -171,112 +123,127 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            // Opportunity Cards
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _filteredOpportunities.length,
+                itemCount: events.length,
                 itemBuilder: (context, index) {
-                  final opportunity = _filteredOpportunities[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                  final event = events[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EventDetailScreen(
+                            event: event,
+                          ),
                         ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF5B21B6)
-                                      .withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  opportunity['category']!,
-                                  style: const TextStyle(
-                                    color: Color(0xFF5B21B6),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF5B21B6).withAlpha(25),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    event.category,
+                                    style: const TextStyle(
+                                      color: Color(0xFF5B21B6),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const Icon(
-                                Icons.bookmark_border,
-                                color: Color(0xFF5B21B6),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            opportunity['title']!,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1F1F1F),
+                                GestureDetector(
+                                  onTap: () => provider.toggleSave(event.id),
+                                  child: Icon(
+                                    event.isSaved
+                                        ? Icons.bookmark
+                                        : Icons.bookmark_border,
+                                    color: const Color(0xFF5B21B6),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            opportunity['description']!,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today_outlined,
-                                size: 14,
-                                color: Color(0xFF6B7280),
+                            const SizedBox(height: 10),
+                            Text(
+                              event.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1F1F1F),
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                opportunity['date']!,
-                                style: const TextStyle(
-                                  fontSize: 12,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              event.description,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 14,
                                   color: Color(0xFF6B7280),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              const Icon(
-                                Icons.location_on_outlined,
-                                size: 14,
-                                color: Color(0xFF6B7280),
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  opportunity['location']!,
+                                const SizedBox(width: 4),
+                                Text(
+                                  event.date,
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: Color(0xFF6B7280),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                                const SizedBox(width: 16),
+                                const Icon(
+                                  Icons.location_on_outlined,
+                                  size: 14,
+                                  color: Color(0xFF6B7280),
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    event.location,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF6B7280),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -292,6 +259,9 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _selectedIndex = index;
           });
+          if (index == 1) {
+            Navigator.pushNamed(context, '/saved');
+          }
           if (index == 3) {
             Navigator.pushNamed(context, '/profile');
           }
