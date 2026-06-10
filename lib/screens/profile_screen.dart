@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/event_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<EventProvider>(context);
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
@@ -19,10 +22,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.logout,
-              color: Color(0xFF5B21B6),
-            ),
+            icon: const Icon(Icons.logout, color: Color(0xFF5B21B6)),
             onPressed: () {
               Navigator.pushReplacementNamed(context, '/login');
             },
@@ -32,17 +32,16 @@ class ProfileScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Profile Header
             Container(
               width: double.infinity,
               color: Colors.white,
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 48,
-                    backgroundColor: const Color(0xFF5B21B6),
-                    child: const Text(
+                    backgroundColor: Color(0xFF5B21B6),
+                    child: Text(
                       'S',
                       style: TextStyle(
                         fontSize: 40,
@@ -63,19 +62,14 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   const Text(
                     'student@alustudent.com',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF6B7280),
-                    ),
+                    style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 6,
-                    ),
+                        horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF5B21B6).withOpacity(0.1),
+                      color: const Color(0xFF5B21B6).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
@@ -91,21 +85,21 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Stats Row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  _buildStatCard('Events\nJoined', '4'),
+                  _buildStatCard(
+                      'Events\nJoined', provider.rsvpedCount.toString()),
                   const SizedBox(width: 12),
-                  _buildStatCard('Opportunities\nSaved', '7'),
+                  _buildStatCard('Opportunities\nSaved',
+                      provider.savedCount.toString()),
                   const SizedBox(width: 12),
                   _buildStatCard('Connections\nMade', '12'),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            // Interests
             Container(
               width: double.infinity,
               color: Colors.white,
@@ -134,11 +128,10 @@ class ProfileScreen extends StatelessWidget {
                     ].map((interest) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
+                            horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF5B21B6).withOpacity(0.1),
+                          color:
+                              const Color(0xFF5B21B6).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -156,7 +149,6 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Recent Activity
             Container(
               width: double.infinity,
               color: Colors.white,
@@ -174,20 +166,11 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   _buildActivityItem(
-                    Icons.event_available,
-                    'Joined Flutter Workshop',
-                    '2 days ago',
-                  ),
+                      Icons.event_available, 'Joined Flutter Workshop', '2 days ago'),
                   _buildActivityItem(
-                    Icons.bookmark,
-                    'Saved ALU Hackathon 2025',
-                    '4 days ago',
-                  ),
+                      Icons.bookmark, 'Saved ALU Hackathon 2025', '4 days ago'),
                   _buildActivityItem(
-                    Icons.chat_bubble,
-                    'Commented on Leadership Bootcamp',
-                    '1 week ago',
-                  ),
+                      Icons.chat_bubble, 'Commented on Leadership Bootcamp', '1 week ago'),
                 ],
               ),
             ),
@@ -207,7 +190,7 @@ class ProfileScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -227,10 +210,7 @@ class ProfileScreen extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF6B7280),
-              ),
+              style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
             ),
           ],
         ),
@@ -246,31 +226,22 @@ class ProfileScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF5B21B6).withOpacity(0.1),
+              color: const Color(0xFF5B21B6).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF5B21B6),
-              size: 18,
-            ),
+            child: Icon(icon, color: const Color(0xFF5B21B6), size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF1F1F1F),
-              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF1F1F1F)),
             ),
           ),
           Text(
             time,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF6B7280),
-            ),
+            style:
+                const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
           ),
         ],
       ),
