@@ -98,6 +98,9 @@ class EventProvider extends ChangeNotifier {
   List<Event> get savedEvents =>
       _events.where((event) => event.isSaved).toList();
 
+  int get savedCount => _events.where((e) => e.isSaved).length;
+  int get rsvpedCount => _events.where((e) => e.isRsvped).length;
+
   List<Event> getByCategory(String category) {
     if (category == 'All') return _events;
     return _events.where((event) => event.category == category).toList();
