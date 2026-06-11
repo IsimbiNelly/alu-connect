@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/event_provider.dart';
 import '../widgets/event_card.dart';
 import '../widgets/category_chip.dart';
-import 'event_details_screen.dart';
+import 'event_detail_screen.dart';
 import 'saved_screen.dart';
 import 'chat_screen.dart';
 
@@ -20,11 +20,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<String> _categories = [
     'All',
-    'Workshops',
-    'Hackathons',
+    'Workshop',
+    'Hackathon',
     'Internships',
     'Leadership',
-    'Startups',
+    'Opportunity',
     'Events',
   ];
 
@@ -105,13 +105,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   final event = filtered[index];
                   return EventCard(
                     event: event,
-                    isSaved: provider.isSaved(event.eventId),
-                    onSave: () => provider.toggleSave(event.eventId),
+                    isSaved: event.isSaved,
+                    onSave: () => provider.toggleSave(event.id),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) =>
-                            EventDetailsScreen(event: event),
+                            EventDetailScreen(event: event),
                       ),
                     ),
                   );

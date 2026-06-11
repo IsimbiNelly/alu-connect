@@ -29,8 +29,8 @@ class EventDetailsScreen extends StatelessWidget {
       ),
       body: Consumer<EventProvider>(
         builder: (context, provider, _) {
-          final saved = provider.isSaved(event.eventId);
-          final rsvped = provider.isRsvped(event.eventId);
+          final saved = event.isSaved;
+          final rsvped = event.isRsvped;
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +127,7 @@ class EventDetailsScreen extends StatelessWidget {
                         label: rsvped ? "RSVP'd ✓" : 'RSVP to Event',
                         filled: true,
                         onPressed: () =>
-                            provider.toggleRsvp(event.eventId),
+                            provider.toggleRsvp(event.id),
                         icon: rsvped
                             ? Icons.check_circle
                             : Icons.event_available,
@@ -138,7 +138,7 @@ class EventDetailsScreen extends StatelessWidget {
                             saved ? 'Saved ✓' : 'Save Opportunity',
                         filled: false,
                         onPressed: () =>
-                            provider.toggleSave(event.eventId),
+                            provider.toggleSave(event.id),
                         icon: saved
                             ? Icons.bookmark
                             : Icons.bookmark_border,
