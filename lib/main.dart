@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'providers/chat_provider.dart';
 import 'providers/event_provider.dart';
+import 'providers/interest_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -9,8 +11,12 @@ import 'screens/saved_screen.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => EventProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => EventProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => InterestProvider()),
+      ],
       child: const ALUConnectApp(),
     ),
   );

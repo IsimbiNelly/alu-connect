@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/event_model.dart';
 
@@ -32,7 +33,21 @@ class EventCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Padding(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (event.imagePath != null && event.imagePath!.isNotEmpty)
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16)),
+                child: Image.file(
+                  File(event.imagePath!),
+                  width: double.infinity,
+                  height: 120,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,6 +123,8 @@ class EventCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+          ],
         ),
       ),
     );

@@ -1,19 +1,92 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/event_model.dart';
+import '../providers/chat_provider.dart';
 
-class ChatScreen extends StatelessWidget {
-  final String eventTitle;
+class ChatScreen extends StatefulWidget {
+  final Event event;
+  const ChatScreen({super.key, required this.event});
 
-  const ChatScreen({super.key, required this.eventTitle});
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final _controller = TextEditingController();
+  final _scrollController = ScrollController();
+
+  bool _welcomeEnsured = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_welcomeEnsured) {
+      _welcomeEnsured = true;
+      Provider.of<ChatProvider>(context, listen: false)
+          .ensureWelcome(widget.event.id, widget.event.title);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _send(ChatProvider provider) {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    provider.sendMessage(widget.event.id, text);
+    _controller.clear();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  void _showEditDialog(BuildContext context, ChatProvider provider,
+      String messageId, String currentText) {
+    final editController = TextEditingController(text: currentText);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Edit message'),
+        content: TextField(
+          controller: editController,
+          autofocus: true,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              provider.editMessage(
+                  widget.event.id, messageId, editController.text);
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Save',
+              style: TextStyle(color: Color(0xFF5B21B6)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final messages = [
-      {'sender': 'Amara K.', 'text': 'Is this open to all programs?', 'isMe': false},
-      {'sender': 'You', 'text': 'Yes, the event is open to everyone at ALU!', 'isMe': true},
-      {'sender': 'Nelly A.', 'text': 'What should we bring? Any prerequisites?', 'isMe': false},
-      {'sender': 'Sarah G.', 'text': 'Just your laptop and enthusiasm 🚀', 'isMe': false},
-      {'sender': 'You', 'text': 'See you all there!', 'isMe': true},
-    ];
+    final provider = Provider.of<ChatProvider>(context);
+    final messages = provider.getMessages(widget.event.id);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -28,7 +101,7 @@ class ChatScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              eventTitle,
+              widget.event.title,
               style: const TextStyle(
                 color: Color(0xFF1F1F1F),
                 fontWeight: FontWeight.bold,
@@ -46,76 +119,133 @@ class ChatScreen extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final msg = messages[index];
-                final isMe = msg['isMe'] as bool;
-                return Align(
-                  alignment:
-                      isMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.72,
+            child: messages.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No messages yet.\nBe the first to say something!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
                     ),
-                    child: Column(
-                      crossAxisAlignment: isMe
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        if (!isMe)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4, bottom: 4),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = messages[index];
+                      if (msg.isSystem) {
+                        return Center(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEDE9FE),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                             child: Text(
-                              msg['sender'] as String,
+                              msg.text,
+                              textAlign: TextAlign.center,
                               style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF6B7280),
-                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF5B21B6),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: isMe
-                                ? const Color(0xFF5B21B6)
-                                : Colors.white,
-                            borderRadius: BorderRadius.only(
-                              topLeft: const Radius.circular(16),
-                              topRight: const Radius.circular(16),
-                              bottomLeft:
-                                  Radius.circular(isMe ? 16 : 4),
-                              bottomRight:
-                                  Radius.circular(isMe ? 4 : 16),
+                        );
+                      }
+                      return GestureDetector(
+                        onLongPress: msg.isMe
+                            ? () => _showEditDialog(
+                                context, provider, msg.id, msg.text)
+                            : null,
+                        child: Align(
+                          alignment: msg.isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            constraints: BoxConstraints(
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.72,
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            msg['text'] as String,
-                            style: TextStyle(
-                              color: isMe
-                                  ? Colors.white
-                                  : const Color(0xFF1F1F1F),
-                              fontSize: 14,
+                            child: Column(
+                              crossAxisAlignment: msg.isMe
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                if (!msg.isMe)
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 4, bottom: 4),
+                                    child: Text(
+                                      msg.sender,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF6B7280),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: msg.isMe
+                                        ? const Color(0xFF5B21B6)
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: const Radius.circular(16),
+                                      topRight: const Radius.circular(16),
+                                      bottomLeft:
+                                          Radius.circular(msg.isMe ? 16 : 4),
+                                      bottomRight:
+                                          Radius.circular(msg.isMe ? 4 : 16),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black
+                                            .withValues(alpha: 0.05),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        msg.text,
+                                        style: TextStyle(
+                                          color: msg.isMe
+                                              ? Colors.white
+                                              : const Color(0xFF1F1F1F),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      if (msg.isEdited)
+                                        Text(
+                                          'edited',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: msg.isMe
+                                                ? Colors.white
+                                                    .withValues(alpha: 0.7)
+                                                : const Color(0xFF9CA3AF),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           Container(
             padding:
@@ -125,6 +255,9 @@ class ChatScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: TextField(
+                    controller: _controller,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _send(provider),
                     decoration: InputDecoration(
                       hintText: 'Type a message...',
                       hintStyle:
@@ -146,7 +279,7 @@ class ChatScreen extends StatelessWidget {
                   child: IconButton(
                     icon: const Icon(Icons.send,
                         color: Colors.white, size: 18),
-                    onPressed: () {},
+                    onPressed: () => _send(provider),
                   ),
                 ),
               ],

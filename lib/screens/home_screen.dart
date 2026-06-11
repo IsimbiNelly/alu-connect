@@ -5,7 +5,8 @@ import '../widgets/event_card.dart';
 import '../widgets/category_chip.dart';
 import 'event_detail_screen.dart';
 import 'saved_screen.dart';
-import 'chat_screen.dart';
+import 'chatrooms_screen.dart';
+import 'create_event_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   String _selectedCategory = 'All';
+  String _searchQuery = '';
 
   final List<String> _categories = [
     'All',
@@ -28,14 +30,26 @@ class _HomeScreenState extends State<HomeScreen> {
     'Events',
   ];
 
+  static const Map<String, IconData> _categoryIcons = {
+    'All': Icons.apps_rounded,
+    'Workshop': Icons.build_outlined,
+    'Hackathon': Icons.code_rounded,
+    'Internships': Icons.work_outline_rounded,
+    'Leadership': Icons.star_outline_rounded,
+    'Opportunity': Icons.lightbulb_outline_rounded,
+    'Events': Icons.event_outlined,
+  };
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<EventProvider>(context);
-    final filtered = _selectedCategory == 'All'
-        ? provider.events
-        : provider.events
-            .where((e) => e.category == _selectedCategory)
-            .toList();
+    final filtered = provider.events.where((e) {
+      final matchesCategory =
+          _selectedCategory == 'All' || e.category == _selectedCategory;
+      final matchesSearch = _searchQuery.isEmpty ||
+          e.title.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -44,28 +58,13 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hello, Student 👋',
-                        style:
-                            TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                      const Text(
-                        'Discover Opportunities',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F1F1F),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'Hello, Student 👋',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                   const CircleAvatar(
                     backgroundColor: Color(0xFF5B21B6),
@@ -79,27 +78,56 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                onChanged: (value) => setState(() => _searchQuery = value),
+                decoration: InputDecoration(
+                  hintText: 'Search events...',
+                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                  prefixIcon: const Icon(Icons.search_rounded,
+                      color: Color(0xFF5B21B6)),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey[200]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey[200]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: Color(0xFF5B21B6)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             SizedBox(
               height: 44,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: _categories.length,
                 itemBuilder: (context, index) {
                   final category = _categories[index];
                   return CategoryChip(
                     label: category,
                     isSelected: category == _selectedCategory,
+                    icon: _categoryIcons[category],
                     onTap: () =>
                         setState(() => _selectedCategory = category),
                   );
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                 itemCount: filtered.length,
                 itemBuilder: (context, index) {
                   final event = filtered[index];
@@ -131,16 +159,10 @@ class _HomeScreenState extends State<HomeScreen> {
               MaterialPageRoute(builder: (_) => const SavedScreen()),
             );
           } else if (index == 2) {
-            final firstEvent =
-                Provider.of<EventProvider>(context, listen: false)
-                    .events
-                    .first;
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) =>
-                    ChatScreen(eventTitle: firstEvent.title),
-              ),
+                  builder: (_) => const ChatroomsScreen()),
             );
           } else if (index == 3) {
             Navigator.pushNamed(context, '/profile');
@@ -171,6 +193,14 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Profile',
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF5B21B6),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const CreateEventScreen()),
+        ),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

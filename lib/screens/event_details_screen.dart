@@ -149,7 +149,7 @@ class EventDetailsScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) =>
-                                ChatScreen(eventTitle: event.title),
+                                ChatScreen(event: event),
                           ),
                         ),
                         icon: const Icon(Icons.chat_bubble_outline,

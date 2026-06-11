@@ -1,16 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:alu_connect/models/event_model.dart';
 import 'package:alu_connect/providers/event_provider.dart';
 
 void main() {
+  late EventProvider provider;
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    provider = EventProvider();
+    await provider.initialized;
+  });
+
   group('EventProvider', () {
-    late EventProvider provider;
-
-    setUp(() {
-      provider = EventProvider();
-    });
-
-    test('starts with 6 events', () {
-      expect(provider.events.length, 6);
+    test('loads 8 seeded events', () {
+      expect(provider.events.length, 8);
     });
 
     test('starts with no saved events', () {
@@ -22,47 +26,78 @@ void main() {
       expect(provider.rsvpedCount, 0);
     });
 
-    test('toggleSave adds eventId', () {
-      provider.toggleSave('event_001');
-      expect(provider.isSaved('event_001'), true);
+    test('toggleSave marks event as saved', () {
+      provider.toggleSave('1');
+      expect(provider.events.firstWhere((e) => e.id == '1').isSaved, true);
       expect(provider.savedCount, 1);
     });
 
-    test('toggleSave removes eventId when already saved', () {
-      provider.toggleSave('event_001');
-      provider.toggleSave('event_001');
-      expect(provider.isSaved('event_001'), false);
+    test('toggleSave unmarks a saved event', () {
+      provider.toggleSave('1');
+      provider.toggleSave('1');
+      expect(provider.events.firstWhere((e) => e.id == '1').isSaved, false);
       expect(provider.savedCount, 0);
     });
 
-    test('toggleRsvp adds eventId', () {
-      provider.toggleRsvp('event_002');
-      expect(provider.isRsvped('event_002'), true);
+    test('toggleRsvp marks event as RSVPed', () {
+      provider.toggleRsvp('2');
+      expect(provider.events.firstWhere((e) => e.id == '2').isRsvped, true);
       expect(provider.rsvpedCount, 1);
     });
 
-    test('toggleRsvp removes eventId when already RSVPed', () {
-      provider.toggleRsvp('event_002');
-      provider.toggleRsvp('event_002');
-      expect(provider.isRsvped('event_002'), false);
+    test('toggleRsvp unmarks an RSVPed event', () {
+      provider.toggleRsvp('2');
+      provider.toggleRsvp('2');
+      expect(provider.events.firstWhere((e) => e.id == '2').isRsvped, false);
       expect(provider.rsvpedCount, 0);
     });
 
+    test('rsvpedEvents returns only RSVPed events', () {
+      provider.toggleRsvp('1');
+      provider.toggleRsvp('3');
+      expect(provider.rsvpedEvents.length, 2);
+      expect(provider.rsvpedEvents.any((e) => e.id == '1'), true);
+      expect(provider.rsvpedEvents.any((e) => e.id == '3'), true);
+    });
+
     test('savedEvents returns only saved events', () {
-      provider.toggleSave('event_001');
-      provider.toggleSave('event_003');
-      final saved = provider.savedEvents;
-      expect(saved.length, 2);
-      expect(saved.any((e) => e.eventId == 'event_001'), true);
-      expect(saved.any((e) => e.eventId == 'event_003'), true);
+      provider.toggleSave('1');
+      provider.toggleSave('3');
+      expect(provider.savedEvents.length, 2);
+      expect(provider.savedEvents.any((e) => e.id == '1'), true);
+      expect(provider.savedEvents.any((e) => e.id == '3'), true);
     });
 
-    test('isSaved returns false for unsaved event', () {
-      expect(provider.isSaved('event_999'), false);
+    test('addEvent inserts at front of list', () {
+      final initial = provider.events.length;
+      provider.addEvent(Event(
+        id: 'new1',
+        title: 'Test',
+        description: 'Desc',
+        date: 'Jun 11, 2026',
+        time: '10:00 AM',
+        location: 'Campus',
+        category: 'Events',
+        organizer: 'Me',
+        userCreated: true,
+      ));
+      expect(provider.events.length, initial + 1);
+      expect(provider.events.first.id, 'new1');
     });
 
-    test('isRsvped returns false for non-RSVPed event', () {
-      expect(provider.isRsvped('event_999'), false);
+    test('addEvent marks event with userCreated=true', () {
+      provider.addEvent(Event(
+        id: 'uc1',
+        title: 'My Event',
+        description: 'Desc',
+        date: 'Jun 12, 2026',
+        time: '11:00 AM',
+        location: 'Online',
+        category: 'Events',
+        organizer: 'Student',
+        userCreated: true,
+      ));
+      expect(provider.events.firstWhere((e) => e.id == 'uc1').userCreated, true);
     });
   });
 }

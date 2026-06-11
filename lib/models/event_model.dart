@@ -9,6 +9,7 @@ class Event {
   final String organizer;
   final List<String> goingConnections;
   final bool userCreated;
+  final String? imagePath;
   bool isRsvped;
   bool isSaved;
 
@@ -23,6 +24,7 @@ class Event {
     required this.organizer,
     this.goingConnections = const [],
     this.userCreated = false,
+    this.imagePath,
     this.isRsvped = false,
     this.isSaved = false,
   });
@@ -38,6 +40,7 @@ class Event {
         'organizer': organizer,
         'goingConnections': goingConnections,
         'userCreated': userCreated,
+        'imagePath': imagePath,
         'isRsvped': isRsvped,
         'isSaved': isSaved,
       };
@@ -54,6 +57,7 @@ class Event {
         goingConnections:
             (json['goingConnections'] as List<dynamic>).cast<String>(),
         userCreated: json['userCreated'] as bool? ?? false,
+        imagePath: json['imagePath'] as String?,
         isRsvped: json['isRsvped'] as bool? ?? false,
         isSaved: json['isSaved'] as bool? ?? false,
       );
